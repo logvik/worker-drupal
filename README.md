@@ -13,11 +13,7 @@ docker service update php-worker --replicas 5 --image logvik/php-worker-git-depl
 ```
 If need just pull new code, then run 
 ```
-docker service update php-worker --update-delay 31s --image logvik/php-worker-git-deploy:latest
-```
-in other time
-```
-docker service update php-worker --update-delay 30s --image logvik/php-worker-git-deploy:latest
+docker service update php-worker --image logvik/php-worker-git-deploy:latest --force
 ```
 Any service updates  will deploy new docker container and pull new code into container
 
