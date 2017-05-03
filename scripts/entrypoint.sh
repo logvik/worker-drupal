@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 #set -eo pipefail
 #shopt -s nullglob
 if [ ! -z "$GIT_DEPLOY_KEY" ]; then
@@ -14,10 +14,13 @@ if [ ! -z "$GIT_REPO" ]; then
   fi
   echo "Git clone repo";
   GIT_HOST=$(echo "$GIT_REPO" | grep -oE "@([^:\/])*" | cut -d'@' -f 2);
-  echo -e "Host $GIT_HOST\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
-  git clone -q "$MISC""$GIT_REPO" /var/www;
+  echo -e "Host $GIT_HOST\n\tStrictHostKeyChecking no\n\tServerAliveInterval 20" >> ~/.ssh/config;
+  rm -R /var/www/html;
+  git clone -q "$MISC""$GIT_REPO" /var/www || exit 1;
   mkdir -p sites/default/files;
   chown -R www-data:www-data /var/www;
+  /usr/local/bin/drush eval "define('DRUPAL_ROOT', '/var/www'); require_once DRUPAL_ROOT . '/includes/bootstrap.inc'; drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);";
+  /usr/local/bin/drush eval "watchdog('docker', 'container is running', null);";
+  /usr/local/sbin/php-fpm -c /usr/local/etc/php-fpm.conf;
 fi
-service php7.0-fpm reload;
 exec "$@"
